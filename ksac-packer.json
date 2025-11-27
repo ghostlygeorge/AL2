@@ -15,20 +15,12 @@
       "subnet_id": "subnet-034b86dcc0971436f",
       "vpc_id": "vpc-048a846907dbde562",
       "associate_public_ip_address": true,
-      "source_ami_filter": {
-        "filters": {
-          "virtualization-type": "hvm",
-          "name": "amzn2-ami-hvm-*-x86_64-*",
-          "root-device-type": "ebs"
-        },
-        "owners": ["amazon"],
-        "most_recent": true
-      },
+      "source_ami": "ami-07631c523cbaef409",
       "instance_type": "t3.micro",
       "ssh_username": "ec2-user",
-      "ami_name": "amzn2-x86_64-{{timestamp}}",
+      "ami_name": "amazon-eks-node-1.32{{timestamp}}",
       "tags": {
-        "Name": "al2-cis-{{timestamp}}",
+        "Name": "amzn_eks_node-{{timestamp}}",
         "OS": "Amazon Linux 2",
         "SecurityBaseline": "CIS-L1",
         "CreatedBy": "Packer-Ansible-George",
