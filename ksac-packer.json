@@ -50,6 +50,17 @@
   ],
 
   "provisioners": [
+
+    {
+      "type": "shell",
+      "inline": [
+	"while sudo fuser /var/run/yum.pid >/dev/null 2>&1; do echo 'Waiting for yum lock...'; sleep 5; done",
+	"sudo amazon-linux-extras enable python3.8",
+	"sudo yum clean metadata",
+        "sudo yum install -y python38",
+        "sudo alternatives --set python /usr/bin/python3.8 || true"
+      ]
+    },
     {
       "type": "ansible",
       "playbook_file": "./playbook.yml",
