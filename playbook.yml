@@ -1,0 +1,110 @@
+- name: AL2 CIS hardening
+  hosts: all
+  become: yes
+
+  roles:
+    - amazon_linux_cis_hardening
+
+  vars:
+    ssh_banner_text: |
+      Unauthorized access to this system is prohibited.
+      All activity may be monitored and reported.
+
+  tasks:
+#    - name: Copy agent to the remote host
+#      ansible.builtin.copy:
+#        src: /home/ghost/ansible/datanode_igu/falcon-sensor-7.24.0-17706.amzn2023.x86_64.rpm
+#        dest: /tmp/
+#        mode: '0644'
+
+#    - name: Install Falcon agent
+#      ansible.builtin.yum:
+#        name: /tmp/falcon-sensor-7.24.0-17706.amzn2023.x86_64.rpm
+#        state: present
+#        disable_gpg_check: yes
+
+#    - name: Register Falcon agent with CCID
+#      ansible.builtin.command: >
+#        /opt/CrowdStrike/falconctl -s --cid={{ falcon_ccid }} -f
+#      args:
+#        creates: /opt/CrowdStrike/falconhoseclient.db
+#      notify:
+#        - Start falcon-sensor
+
+#    - name: Enable Falcon service for autostart
+#      ansible.builtin.systemd:
+#        name: falcon-sensor
+#        enabled: true
+
+#    - name: Stop Falcon service if running (AMI build)
+#      ansible.builtin.systemd:
+#        name: falcon-sensor
+#        state: stopped
+#      ignore_errors: tru
+
+#    - name: Clear Falcon local state (for AMI template hygiene)
+#      ansible.builtin.file:
+#        path: /opt/CrowdStrike/var/
+#        state: absent
+
+#    - name: Recreate Falcon var directory
+#      ansible.builtin.file:
+#        path: /opt/CrowdStrike/var/
+#        state: directory
+#       owner: root
+#       group: root
+#        mode: '0700'
+
+#    - name: Ensure service is disabled in AMI
+#      ansible.builtin.systemd:
+#        name: falcon-sensor
+#        enabled: false
+
+#    - name: Delete Falcon agent installer
+#      ansible.builtin.file:
+#        path: /tmp/falcon-sensor-7.24.0-17706.amzn2023.x86_64.rpm
+#        state: absent
+
+    ####################################################################
+    # SSH Configuration
+    ####################################################################
+
+    - name: Ensure SSH root login disabled
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+      notify: restart ssh
+
+    - name: Set SSH MaxAuthTries
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^MaxAuthTries'
+        line: 'MaxAuthTries 3'
+      notify: restart ssh
+
+    - name: Set SSH banners
+      ansible.builtin.copy:
+        dest: /etc/issue.net
+        content: "{{ ssh_banner_text }}"
+
+    - name: Enable SSH Banner
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^Banner'
+        line: 'Banner /etc/issue.net'
+      notify: restart ssh
+
+  handlers:
+    - name: Start falcon-sensor
+      ansible.builtin.service:
+        name: falcon-sensor
+        state: started
+        enabled: yes
+
+    - name: restart ssh
+      ansible.builtin.service:
+        name: sshd
+        state: restarted
+      ignore_errors: yes
+      failed_when: false

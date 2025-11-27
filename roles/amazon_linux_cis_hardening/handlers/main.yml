@@ -1,0 +1,31 @@
+---
+# handlers file for amazon_linux_cis_hardening
+- name: restart falcon-sensor
+  service:
+    name: falcon-sensor
+    state: restarted
+
+- name: rebuild initramfs
+  command: dracut -f
+  changed_when: false
+
+- name: restart auditd
+  debug:
+    msg: "auditd restart skipped — systemd prevents manual restart"
+
+- name: restart rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    state: restarted
+    enabled: yes
+
+- name: update grub
+  command: grub2-mkconfig -o /boot/grub2/grub.cfg
+  changed_when: false
+  ignore_errors: true
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted
+  ignore_errors: true  

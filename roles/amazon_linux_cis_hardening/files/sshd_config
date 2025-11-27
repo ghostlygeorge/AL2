@@ -1,0 +1,31 @@
+# This is the sshd server system-wide configuration file.
+Port 22
+Protocol 2
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+SyslogFacility AUTHPRIV
+LogLevel INFO
+LoginGraceTime 60
+PermitRootLogin no
+StrictModes yes
+MaxAuthTries 4
+IgnoreRhosts yes
+HostbasedAuthentication no
+PermitEmptyPasswords no
+X11Forwarding no
+PrintMotd no
+PrintLastLog yes
+TCPKeepAlive yes
+ClientAliveInterval 300
+ClientAliveCountMax 0
+UsePAM yes
+UsePrivilegeSeparation sandbox
+PermitUserEnvironment no
+Compression no
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+Ciphers aes256-ctr,aes192-ctr,aes128-ctr
+Banner /etc/issue.net
+AllowUsers {{ ssh_allowed_users }}
+AllowGroups {{ ssh_allowed_groups }}

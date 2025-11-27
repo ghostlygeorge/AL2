@@ -1,0 +1,128 @@
+---
+- name: 5.1.2-8 Configure cron permissions
+  block:
+    - name: Set permissions on /etc/crontab
+      file:
+        path: /etc/crontab
+        owner: root
+        group: root
+        mode: 0600
+
+    - name: Set permissions on cron directories
+      file:
+        path: "{{ item }}"
+        owner: root
+        group: root
+        mode: 0700
+      with_items:
+        - /etc/cron.hourly
+        - /etc/cron.daily
+        - /etc/cron.weekly
+        - /etc/cron.monthly
+        - /etc/cron.d
+
+    - name: Restrict at/cron to authorized users
+      file:
+        path: "{{ item.path }}"
+        state: "{{ item.state }}"
+        owner: root
+        group: root
+        mode: 0600
+      with_items:
+        - { path: '/etc/cron.deny', state: 'absent' }
+        - { path: '/etc/at.deny', state: 'absent' }
+        - { path: '/etc/cron.allow', state: 'touch' }
+        - { path: '/etc/at.allow', state: 'touch' }
+
+- name: 5.2.1-19 Configure SSH
+  block:
+    - name: Configure SSH
+      copy:
+        src: sshd_config
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: 0600
+      notify: restart sshd
+      ignore_errors: true
+
+    - name: Ensure SSH root login is disabled
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+        state: present
+      notify: restart sshd
+      ignore_errors: true
+
+    - name: Ensure SSH Protocol is set to 2
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^Protocol'
+        line: 'Protocol 2'
+        state: present
+      notify: restart sshd
+      ignore_errors: true
+
+    - name: Ensure SSH LogLevel is appropriate
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^LogLevel'
+        line: 'LogLevel INFO'
+        state: present
+      notify: restart sshd
+      ignore_errors: true
+
+    - name: Enable and start sshd
+      service:
+        name: sshd
+        state: started
+        enabled: yes
+      ignore_errors: true
+
+- name: 5.4.4-5 Configure user defaults
+  block:
+    - name: Set default umask
+      lineinfile:
+        path: /etc/bashrc
+        regexp: '^umask'
+        line: 'umask 027'
+        state: present
+      ignore_errors: true
+
+      lineinfile:
+        path: /etc/profile
+        regexp: '^umask'
+        line: 'umask 027'
+        state: present
+      ignore_errors: true
+
+    - name: Set default shell timeout
+      lineinfile:
+        path: /etc/profile
+        insertafter: EOF
+        line: 'TMOUT=900'
+        state: present
+      ignore_errors: true
+
+      lineinfile:
+        path: /etc/bashrc
+        insertafter: EOF
+        line: 'TMOUT=900'
+        state: present
+      ignore_errors: true
+
+- name: 5.6 Ensure access to the su command is restricted
+  lineinfile:
+    path: /etc/pam.d/su
+    regexp: '^auth\s+required\s+pam_wheel.so'
+    line: 'auth            required        pam_wheel.so use_uid'
+    state: present
+  ignore_errors: true
+
+  lineinfile:
+    path: /etc/group
+    regexp: '^wheel:'
+    line: 'wheel:x:10:root'
+    state: present
+  ignore_errors: true

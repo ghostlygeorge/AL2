@@ -1,0 +1,10 @@
+---
+# tasks file for amazon_linux2_cis_hardening
+- name: Include all section tasks
+  include_tasks: "{{ item }}"
+  with_items:
+    - section_1.yml
+    - section_2.yml
+    - section_3.yml
+    - section_4.yml
+    - section_5.yml

@@ -1,0 +1,5 @@
+---
+# defaults file for amazon_linux2_cis_hardening
+remote_log_host: "loghost.example.com"
+ssh_allowed_users: "adminuser1,adminuser2"
+ssh_allowed_groups: "sshusers"
